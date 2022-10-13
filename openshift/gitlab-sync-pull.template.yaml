@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: gitlab-sync-pull
+objects:
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: gitlab-sync-pull
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      app: gitlab-sync-pull
+    annotations:
+      ignore-check.kube-linter.io/minimum-three-replicas: "gitlab-sync-pull design does not adequately account for multiple replicas"
+      ignore-check.kube-linter.io/no-readiness-probe: "gitlab-sync-pull does not receive traffic"
+      ignore-check.kube-linter.io/no-liveness-probe: "TODO: https://issues.redhat.com/browse/APPSRE-5919"
+    name: gitlab-sync-pull
+  spec:
+    replicas: ${{REPLICAS}}
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 0
+        maxSurge: 1
+    selector:
+      matchLabels:
+        app: gitlab-sync-pull
+    template:
+      metadata:
+        labels:
+          app: gitlab-sync-pull
+      spec:
+        serviceAccountName: gitlab-sync-pull
+        volumes:
+        - name: private-gpg-key
+          secret:
+            secretName: private-gpg-key
+        containers:
+        - image: ${IMAGE}:${IMAGE_TAG}
+          imagePullPolicy: Always
+          name: gitlab-sync-pull
+          volumeMounts:
+          - name: private-gpg-key
+            mountPath: ${PRIVATE_GPG_PATH}
+            readOnly: true
+          env:
+          - name: PRIVATE_GPG_PATH
+            value: ${PRIVATE_GPG_PATH}
+          - name: REQUEST_TIMEOUT
+            value: ${REQUEST_TIMEOUT}
+          - name: PRIVATE_GPG_PASSPHRASE
+            valueFrom:
+              secretKeyRef:
+                key: ${VAULT_SECRET_NAME}
+                name: passphrase
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                key: aws.access.key.id
+                name: ${VAULT_SECRET_NAME}
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                key: aws.secret.access.key
+                name: ${VAULT_SECRET_NAME}
+          - name: AWS_REGION
+            valueFrom:
+              secretKeyRef:
+                key: aws.region
+                name: ${VAULT_SECRET_NAME}
+          - name: AWS_S3_BUCKET
+            valueFrom:
+              secretKeyRef:
+                key: aws.s3.bucket
+                name: ${VAULT_SECRET_NAME}
+          resources:
+            requests:
+              memory: ${MEMORY_REQUESTS}
+              cpu: ${CPU_REQUESTS}
+            limits:
+              memory: ${MEMORY_LIMIT}
+              cpu: ${CPU_LIMIT}
+parameters:
+- name: IMAGE
+  value: quay.io/app-sre/gitlab-sync-pull
+  displayName: gitlab-sync-pull image
+  description: gitlab-sync-pull docker image. Defaults to quay.io/app-sre/gitlab-sync-pull
+- name: IMAGE_TAG
+  value: latest
+  displayName: gitlab-sync-pull version
+  description: gitlab-sync-pull version which defaults to latest
+- name: PRIVATE_GPG_PATH
+  value: /gpg
+- name: REQUEST_TIMEOUT
+  value: 60
+- name: MEMORY_REQUESTS
+  value: 25Mi
+- name: MEMORY_LIMIT
+  value: 100Mi
+- name: CPU_REQUESTS
+  value: 25m
+- name: CPU_LIMIT
+  value: 100m
+- name: VAULT_SECRET_NAME
+  value: gitlab-sync-pull
