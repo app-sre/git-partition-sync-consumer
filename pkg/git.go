@@ -8,15 +8,18 @@ import (
 )
 
 // Push repos to new branches on target projects
-func PushLatest(archives []ArchiveInfo) error {
+func PushLatest(privateSshKeyFile string, archives []ArchiveInfo) error {
 	for _, archive := range archives {
 		var stdout, stderr bytes.Buffer
 		args := []string{
 			"-c",
-			fmt.Sprintf("%s && %s && %s",
+			fmt.Sprintf("%s && %s && %s && %s && %s && %s",
 				fmt.Sprint("git init --initial-branch=main"),
 				fmt.Sprintf("git checkout -b commercial_%s", archive.ShortSHA),
-				fmt.Sprintf("git remote add fedramp %s", archive.RemoteUrl),
+				fmt.Sprintf("git remote add fedramp %s", archive.RemoteSshUri),
+				fmt.Sprint("git add ."),
+				fmt.Sprintf("git commit -m 'Sync to version %s'", archive.ShortSHA),
+				fmt.Sprintf("git push -u fedramp commercial_%s", archive.ShortSHA),
 			),
 		}
 		cmd := exec.Command("/bin/sh", args...)
