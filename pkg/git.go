@@ -1,9 +1,7 @@
 package pkg
 
 import (
-	"bytes"
 	"fmt"
-	"log"
 	"os/exec"
 )
 
@@ -12,7 +10,6 @@ import (
 // Push repos to new branches on target projects
 func PushLatest(gitlabUsername, gitlabToken string, archives []ArchiveInfo) error {
 	for _, archive := range archives {
-		var stdout, stderr bytes.Buffer
 		args := []string{
 			"-c",
 			fmt.Sprintf("%s && %s && %s && %s && %s && %s",
@@ -26,15 +23,8 @@ func PushLatest(gitlabUsername, gitlabToken string, archives []ArchiveInfo) erro
 		}
 		cmd := exec.Command("/bin/sh", args...)
 		cmd.Dir = archive.DirPath
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
 		err := cmd.Run()
 		if err != nil {
-			log.Println(fmt.Sprintf(
-				"STDOUT: %s\n\nSTDERR: %s",
-				stdout.String(),
-				stderr.String(),
-			))
 			return err
 		}
 	}
