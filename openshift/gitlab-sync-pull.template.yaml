@@ -53,8 +53,8 @@ objects:
           - name: PRIVATE_GPG_PASSPHRASE
             valueFrom:
               secretKeyRef:
-                key: ${VAULT_SECRET_NAME}
-                name: passphrase
+                key: passphrase
+                name: ${VAULT_SECRET_NAME}
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
@@ -75,6 +75,16 @@ objects:
               secretKeyRef:
                 key: aws.s3.bucket
                 name: ${VAULT_SECRET_NAME}
+          - name: GITLAB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                key: gitlab.username
+                name: ${VAULT_SECRET_NAME}
+          - name: GITLAB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: gitlab.token
+                name: ${VAULT_SECRET_NAME}
           resources:
             requests:
               memory: ${MEMORY_REQUESTS}
@@ -92,7 +102,7 @@ parameters:
   displayName: gitlab-sync-pull version
   description: gitlab-sync-pull version which defaults to latest
 - name: PRIVATE_GPG_PATH
-  value: /gpg
+  value: /private.gpg
 - name: REQUEST_TIMEOUT
   value: 60
 - name: MEMORY_REQUESTS
