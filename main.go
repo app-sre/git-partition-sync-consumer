@@ -60,7 +60,6 @@ func main() {
 
 func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dryRun bool, sleep time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
-	defer cancel()
 	s3, err := pkg.NewS3Helper(ctx, bucket)
 	if err != nil {
 		return err
@@ -68,11 +67,13 @@ func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dry
 
 	first := true
 	for {
-		// janky if-else so `continue`s can be utilized w/ skipping sleep
+		// janky if-else so `continue`s can be utilized w/out skipping sleep
 		if first {
 			first = false
 		} else {
 			time.Sleep(sleep)
+			ctx, cancel = context.WithTimeout(context.Background(), time.Second*20)
+			s3.RefreshContext(ctx)
 		}
 		log.Println("Beginning sync...")
 
@@ -103,8 +104,14 @@ func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dry
 			continue
 		}
 		if dryRun {
-			// print to be pushed repos
-
+			for _, archive := range archives {
+				log.Println(
+					fmt.Sprintf("[DRY-RUN] New branch pushed for %s with short sha %s",
+						archive.RemoteURL,
+						archive.ShortSHA),
+				)
+			}
+			cancel()
 			return nil
 		}
 
@@ -116,13 +123,14 @@ func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dry
 
 		s3.UpdateCache()
 
-		log.Println("Sync completed")
 		for _, archive := range archives {
 			log.Println(
 				fmt.Sprintf("New branch pushed for %s with short sha %s",
-					archive.RemoteSshUri,
+					archive.RemoteURL,
 					archive.ShortSHA),
 			)
 		}
+
+		cancel()
 	}
 }
