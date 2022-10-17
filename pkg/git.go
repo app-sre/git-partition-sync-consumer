@@ -16,6 +16,9 @@ func PushLatest(gitlabUsername, gitlabToken string, archives []ArchiveInfo) erro
 		if err != nil {
 			return err
 		}
+		// TODO: better method for pushing unique branch name
+		// the time portion is utilized to ensure error is avoided during push due to branch already existing
+		// this can occur when the container restarts and loses the s3 cache
 		branchName := fmt.Sprintf("commercial_%s_%d", archive.ShortSHA, time.Now().UnixMilli())
 
 		args := []string{
