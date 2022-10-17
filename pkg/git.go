@@ -7,8 +7,10 @@ import (
 	"os/exec"
 )
 
+// shield your eyes
+// TODO: replace this evil with https://github.com/go-git/go-git
 // Push repos to new branches on target projects
-func PushLatest(privateSshKeyFile string, archives []ArchiveInfo) error {
+func PushLatest(gitlabUsername, gitlabToken string, archives []ArchiveInfo) error {
 	for _, archive := range archives {
 		var stdout, stderr bytes.Buffer
 		args := []string{

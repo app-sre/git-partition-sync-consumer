@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -15,6 +16,8 @@ const (
 	PRIVATE_GPG_PATH       = "PRIVATE_GPG_PATH"
 	PRIVATE_GPG_PASSPHRASE = "PRIVATE_GPG_PASSPHRASE"
 	RECONCILE_SLEEP_TIME   = "RECONCILE_SLEEP_TIME"
+	GITLAB_USERNAME        = "GITLAB_USERNAME"
+	GITLAB_TOKEN           = "GITLAB_TOKEN"
 )
 
 func main() {
@@ -35,6 +38,14 @@ func main() {
 	if bucket == "" {
 		log.Fatalf("Missing environment variable: %s", AWS_S3_BUCKET)
 	}
+	gitlabUsername, _ := os.LookupEnv(GITLAB_USERNAME)
+	if gitlabUsername == "" {
+		log.Fatalf("Missing environment variable: %s", GITLAB_USERNAME)
+	}
+	gitlabToken, _ := os.LookupEnv(GITLAB_TOKEN)
+	if gitlabUsername == "" {
+		log.Fatalf("Missing environment variable: %s", GITLAB_TOKEN)
+	}
 	sleep, _ := os.LookupEnv(RECONCILE_SLEEP_TIME)
 	if sleep == "" {
 		log.Fatalf("Missing environment variable: %s", RECONCILE_SLEEP_TIME)
@@ -44,10 +55,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	log.Fatal(run(bucket, path, passphrase, dryRun, sleepDuration))
+	log.Fatal(run(bucket, path, passphrase, gitlabUsername, gitlabToken, dryRun, sleepDuration))
 }
 
-func run(bucket, gpgPath, gpgPassphrase string, dryRun bool, sleep time.Duration) error {
+func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dryRun bool, sleep time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	s3, err := pkg.NewS3Helper(ctx, bucket)
@@ -63,10 +74,14 @@ func run(bucket, gpgPath, gpgPassphrase string, dryRun bool, sleep time.Duration
 		} else {
 			time.Sleep(sleep)
 		}
+		log.Println("Beginning sync...")
 
 		encryptedUpdates, err := s3.GetUpdatedObjects(ctx)
 		if err != nil {
 			log.Println(err)
+			continue
+		}
+		if len(encryptedUpdates) < 1 {
 			continue
 		}
 
@@ -87,20 +102,27 @@ func run(bucket, gpgPath, gpgPassphrase string, dryRun bool, sleep time.Duration
 			log.Println(err)
 			continue
 		}
-
 		if dryRun {
 			// print to be pushed repos
 
 			return nil
 		}
 
-		err = pkg.PushLatest(archives)
+		err = pkg.PushLatest(gitlabUsername, gitlabToken, archives)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
 		s3.UpdateCache()
-		return nil
+
+		log.Println("Sync completed")
+		for _, archive := range archives {
+			log.Println(
+				fmt.Sprintf("New branch pushed for %s with short sha %s",
+					archive.RemoteSshUri,
+					archive.ShortSHA),
+			)
+		}
 	}
 }
