@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,9 +14,9 @@ import (
 )
 
 type ArchiveInfo struct {
-	DirPath   string // absolute
-	RemoteUrl string
-	ShortSHA  string
+	DirPath      string // absolute
+	RemoteSshUri string
+	ShortSHA     string
 }
 
 // unzip the content of decrypted s3 objects
@@ -107,10 +108,16 @@ func extractGitRemote(a *ArchiveInfo, encodedKey string) error {
 		return err
 	}
 	decodedKey := string(decodedKeyBytes)
-	// remove the trailing commit sha
 	decodedKeySegments := strings.Split(decodedKey, "/")
-	a.RemoteUrl = fmt.Sprintf("%s.git",
-		strings.Join(decodedKeySegments[:len(decodedKeySegments)-1], "/"))
+	u, err := url.Parse(fmt.Sprintf("%s.git",
+		// remove the trailing commit sha
+		strings.Join(decodedKeySegments[:len(decodedKeySegments)-1], "/")))
+	if err != nil {
+		return err
+	}
+	// replace https:// with git@
+	// append path and replace / with : after host
+	a.RemoteSshUri = fmt.Sprintf("git@%s:%s", u.Host, u.Path[1:])
 	a.ShortSHA = decodedKeySegments[len(decodedKeySegments)-1][:7]
 	return nil
 }
