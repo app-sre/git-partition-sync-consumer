@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"net/url"
 	"os/exec"
-	"time"
 )
 
-// shield your eyes
-// TODO: replace this evil with https://github.com/go-git/go-git
 // Push repos to new branches on target projects
 func PushLatest(gitlabUsername, gitlabToken string, archives []ArchiveInfo) error {
 	for _, archive := range archives {
@@ -16,20 +13,12 @@ func PushLatest(gitlabUsername, gitlabToken string, archives []ArchiveInfo) erro
 		if err != nil {
 			return err
 		}
-		// TODO: better method for pushing unique branch name
-		// the time portion is utilized to ensure error is avoided during push due to branch already existing
-		// this can occur when the container restarts and loses the s3 cache
-		branchName := fmt.Sprintf("commercial_%s_%d", archive.ShortSHA, time.Now().UnixMilli())
 
 		args := []string{
 			"-c",
-			fmt.Sprintf("%s && %s && %s && %s && %s && %s",
-				fmt.Sprint("git init --initial-branch=main"),
-				fmt.Sprintf("git checkout -b %s", branchName),
+			fmt.Sprintf("%s && %s",
 				fmt.Sprintf("git remote add fedramp %s", authURL),
-				fmt.Sprint("git add ."),
-				fmt.Sprintf("git commit -m 'Sync to version %s'", archive.ShortSHA),
-				fmt.Sprintf("git push -u fedramp %s", branchName),
+				fmt.Sprintf("git push -u fedramp %s", archive.RemoteBranch),
 			),
 		}
 		cmd := exec.Command("/bin/sh", args...)
