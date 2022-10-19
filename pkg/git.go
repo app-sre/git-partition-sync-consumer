@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-// Push repos to new branches on target projects
+// Push local repos to remotes
 func PushLatest(gitlabUsername, gitlabToken string, archives []ArchiveInfo) error {
 	for _, archive := range archives {
 		authURL, err := formatAuthURL(archive.RemoteURL, gitlabUsername, gitlabToken)
