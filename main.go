@@ -59,8 +59,9 @@ func main() {
 }
 
 func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dryRun bool, sleep time.Duration) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
-	s3, err := pkg.NewS3Helper(ctx, bucket)
+	ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel1()
+	s3, err := pkg.NewS3Helper(ctx1, bucket)
 	if err != nil {
 		return err
 	}
@@ -72,12 +73,12 @@ func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dry
 			first = false
 		} else {
 			time.Sleep(sleep)
-			ctx, cancel = context.WithTimeout(context.Background(), time.Second*20)
-			s3.RefreshContext(ctx)
 		}
 		log.Println("Beginning sync...")
 
-		encryptedUpdates, err := s3.GetUpdatedObjects(ctx)
+		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*20)
+		defer cancel2()
+		encryptedUpdates, err := s3.GetUpdatedObjects(ctx2)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -103,15 +104,15 @@ func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dry
 			log.Println(err)
 			continue
 		}
+
 		if dryRun {
 			for _, archive := range archives {
 				log.Println(
-					fmt.Sprintf("[DRY-RUN] New branch pushed for %s with short sha %s",
+					fmt.Sprintf("[DRY-RUN] pushed to %s with short sha %s",
 						archive.RemoteURL,
 						archive.ShortSHA),
 				)
 			}
-			cancel()
 			return nil
 		}
 
@@ -125,12 +126,10 @@ func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dry
 
 		for _, archive := range archives {
 			log.Println(
-				fmt.Sprintf("New branch pushed for %s with short sha %s",
+				fmt.Sprintf("Pushed to %s with short sha %s",
 					archive.RemoteURL,
 					archive.ShortSHA),
 			)
 		}
-
-		cancel()
 	}
 }
