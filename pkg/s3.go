@@ -30,15 +30,6 @@ func NewS3Helper(ctx context.Context, bucket string) (*s3Helper, error) {
 	}, nil
 }
 
-func (s *s3Helper) RefreshContext(ctx context.Context) error {
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return err
-	}
-	s.client = s3.NewFromConfig(cfg)
-	return nil
-}
-
 type S3object struct {
 	objKey string
 	body   io.ReadCloser
