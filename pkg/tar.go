@@ -13,7 +13,7 @@ import (
 )
 
 type ArchiveInfo struct {
-	DirPath      string // absolute // START HERE: need to account for repos being nested under /clone_workdir // how do we set specific repo names?
+	DirPath      string
 	RemoteURL    string
 	RemoteBranch string
 	ShortSHA     string
