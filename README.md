@@ -1,5 +1,5 @@
 # gitlab-sync-pull
-Utility for pulling git archives from s3 and pushing to remote
+Utility for pulling git archives from s3 and pushing to remote. Reliant on S3 object key format outputted by `gitlab-sync-push` integration within https://github.com/app-sre/qontract-reconcile
 
 ## Environment Variables
 * AWS_ACCESS_KEY_ID (needs s3 read permission)
