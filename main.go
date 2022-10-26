@@ -2,22 +2,14 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/app-sre/gitlab-sync-pull/pkg"
-)
-
-const (
-	AWS_S3_BUCKET          = "AWS_S3_BUCKET"
-	PRIVATE_GPG_PATH       = "PRIVATE_GPG_PATH"
-	PRIVATE_GPG_PASSPHRASE = "PRIVATE_GPG_PASSPHRASE"
-	RECONCILE_SLEEP_TIME   = "RECONCILE_SLEEP_TIME"
-	GITLAB_USERNAME        = "GITLAB_USERNAME"
-	GITLAB_TOKEN           = "GITLAB_TOKEN"
+	"github.com/dwelch0/gitlab-sync-s3-pull/pkg"
 )
 
 func main() {
@@ -25,111 +17,74 @@ func main() {
 	flag.BoolVar(&dryRun, "dry-run", false, "If true, will only print planned actions")
 	flag.Parse()
 
-	// get necessary env variables
-	path, _ := os.LookupEnv(PRIVATE_GPG_PATH)
-	if path == "" {
-		log.Fatalf("Missing environment variable: %s", PRIVATE_GPG_PATH)
-	}
-	passphrase, _ := os.LookupEnv(PRIVATE_GPG_PASSPHRASE)
-	if passphrase == "" {
-		log.Fatalf("Missing environment variable: %s", PRIVATE_GPG_PASSPHRASE)
-	}
-	bucket, _ := os.LookupEnv(AWS_S3_BUCKET)
-	if bucket == "" {
-		log.Fatalf("Missing environment variable: %s", AWS_S3_BUCKET)
-	}
-	gitlabUsername, _ := os.LookupEnv(GITLAB_USERNAME)
-	if gitlabUsername == "" {
-		log.Fatalf("Missing environment variable: %s", GITLAB_USERNAME)
-	}
-	gitlabToken, _ := os.LookupEnv(GITLAB_TOKEN)
-	if gitlabUsername == "" {
-		log.Fatalf("Missing environment variable: %s", GITLAB_TOKEN)
-	}
-	sleep, _ := os.LookupEnv(RECONCILE_SLEEP_TIME)
-	if sleep == "" {
-		log.Fatalf("Missing environment variable: %s", RECONCILE_SLEEP_TIME)
-	}
-	sleepDuration, err := time.ParseDuration(sleep)
+	// define vars to look for and any defaults
+	envVars, err := getEnvVars(map[string]string{
+		"AWS_ACCESS_KEY_ID":     "",
+		"AWS_SECRET_ACCESS_KEY": "",
+		"AWS_REGION":            "",
+		"AWS_S3_BUCKET":         "",
+		"GITLAB_BASE_URL":       "",
+		"GITLAB_USERNAME":       "",
+		"GITLAB_TOKEN":          "",
+		"PRIVATE_KEY":           "",
+		"RECONCILE_SLEEP_TIME":  "5m",
+		"WORKDIR":               "/working",
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	log.Fatal(run(bucket, path, passphrase, gitlabUsername, gitlabToken, dryRun, sleepDuration))
-}
-
-func run(bucket, gpgPath, gpgPassphrase, gitlabUsername, gitlabToken string, dryRun bool, sleep time.Duration) error {
-	ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*20)
-	defer cancel1()
-	s3, err := pkg.NewS3Helper(ctx1, bucket)
+	sleepDuration, err := time.ParseDuration(envVars["RECONCILE_SLEEP_TIME"])
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 
-	first := true
+	downloader, err := pkg.NewDownloader(
+		envVars["AWS_ACCESS_KEY_ID"],
+		envVars["AWS_SECRET_ACCESS_KEY"],
+		envVars["AWS_REGION"],
+		envVars["AWS_S3_BUCKET"],
+		envVars["GITLAB_BASE_URL"],
+		envVars["GITLAB_USERNAME"],
+		envVars["GITLAB_TOKEN"],
+		envVars["PRIVATE_KEY"],
+		envVars["WORKDIR"],
+	)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	for {
-		// janky if-else so `continue`s can be utilized w/out skipping sleep
-		if first {
-			first = false
-		} else {
-			time.Sleep(sleep)
-		}
-		log.Println("Beginning sync...")
-
-		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*20)
-		defer cancel2()
-		encryptedUpdates, err := s3.GetUpdatedObjects(ctx2)
+		ctx := context.Background()
+		err = downloader.Run(ctx, dryRun)
 		if err != nil {
-			log.Println(err)
-			continue
-		}
-		if len(encryptedUpdates) < 1 {
-			continue
-		}
-
-		gpg, err := pkg.NewGpgHelper(gpgPath, gpgPassphrase)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		decryptedObjs, err := gpg.DecryptBundles(encryptedUpdates)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		archives, err := pkg.Extract(decryptedObjs)
-		if err != nil {
-			log.Println(err)
-			continue
+			log.Fatalln(err)
 		}
 
 		if dryRun {
-			for _, archive := range archives {
-				log.Println(
-					fmt.Sprintf("[DRY-RUN] pushed to %s with short sha %s",
-						archive.RemoteURL,
-						archive.ShortSHA),
-				)
-			}
-			return nil
-		}
-
-		err = pkg.PushLatest(gitlabUsername, gitlabToken, archives)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		s3.UpdateCache()
-
-		for _, archive := range archives {
-			log.Println(
-				fmt.Sprintf("Pushed to %s with short sha %s",
-					archive.RemoteURL,
-					archive.ShortSHA),
-			)
+			return
+		} else {
+			time.Sleep(sleepDuration)
 		}
 	}
+}
+
+// iterate through keys of desired env variables and look up values
+func getEnvVars(vars map[string]string) (map[string]string, error) {
+	result := make(map[string]string)
+	for k := range vars {
+		val := os.Getenv(k)
+		if val == "" {
+			// check if optional (default exists)
+			if vars[k] != "" {
+				result[k] = vars[k]
+			} else {
+				return nil, errors.New(
+					fmt.Sprintf("Required environment variable missing: %s", k))
+			}
+		} else {
+			result[k] = val
+		}
+	}
+	return result, nil
 }

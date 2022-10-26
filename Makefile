@@ -1,4 +1,4 @@
-NAME				:= gitlab-sync-pull
+NAME				:= gitlab-sync-s3-pull
 REPO				:= quay.io/app-sre/$(NAME)
 TAG					:= $(shell git rev-parse --short HEAD)
 

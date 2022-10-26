@@ -7,9 +7,9 @@ import (
 )
 
 // Push local repos to remotes
-func PushLatest(gitlabUsername, gitlabToken string, archives []ArchiveInfo) error {
+func (d *Downloader) pushLatest(archives []ArchiveInfo) error {
 	for _, archive := range archives {
-		authURL, err := formatAuthURL(archive.RemoteURL, gitlabUsername, gitlabToken)
+		authURL, err := d.formatAuthURL(fmt.Sprintf("%s/%s", archive.RemoteGroup, archive.RemoteName))
 		if err != nil {
 			return err
 		}
@@ -32,16 +32,17 @@ func PushLatest(gitlabUsername, gitlabToken string, archives []ArchiveInfo) erro
 }
 
 // returns git user-auth format of remote url
-func formatAuthURL(gitURL, gitlabUsername, gitlabToken string) (string, error) {
-	u, err := url.Parse(gitURL)
+func (d *Downloader) formatAuthURL(pid string) (string, error) {
+	projectURL := fmt.Sprintf("%s/%s", d.glBaseURL, pid)
+	parsedURL, err := url.Parse(projectURL)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s://%s:%s@%s%s",
-		u.Scheme,
-		gitlabUsername,
-		gitlabToken,
-		u.Host,
-		u.Path,
+	return fmt.Sprintf("%s://%s:%s@%s%s.git",
+		parsedURL.Scheme,
+		d.glUsername,
+		d.glToken,
+		parsedURL.Host,
+		parsedURL.Path,
 	), nil
 }

@@ -3,18 +3,21 @@ package pkg
 import (
 	"archive/tar"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
+
+	pushPkg "github.com/dwelch0/gitlab-sync-s3-push/pkg"
 )
 
 type ArchiveInfo struct {
 	DirPath      string
-	RemoteURL    string
+	RemoteGroup  string
+	RemoteName   string
 	RemoteBranch string
 	ShortSHA     string
 }
@@ -22,12 +25,10 @@ type ArchiveInfo struct {
 // unzip the content of decrypted s3 objects
 // each directory is created at current working dir with name of object key
 // adaption of: https://medium.com/@skdomino/taring-untaring-files-in-go-6b07cf56bc07
-func Extract(decrypted []DecryptedObject) ([]ArchiveInfo, error) {
-	working, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-	err = clear(working)
+func (d *Downloader) extract(decrypted []*DecryptedObject) ([]ArchiveInfo, error) {
+	const UNTAR_DIRECTORY = "untarred-repos"
+
+	err := d.clean(UNTAR_DIRECTORY)
 	if err != nil {
 		return nil, err
 	}
@@ -37,8 +38,8 @@ func Extract(decrypted []DecryptedObject) ([]ArchiveInfo, error) {
 	// "untar" each s3 object's body and output to directory
 	// each dir is name of the s3 object's key (this is base64 encoded still)
 	for _, dec := range decrypted {
-		tr := tar.NewReader(dec.Archive)
-		path := filepath.Join(working, "repos", dec.Key)
+		tr := tar.NewReader(dec.DecryptedTar)
+		path := filepath.Join(d.workdir, UNTAR_DIRECTORY, dec.Key)
 		err = os.MkdirAll(path, os.ModePerm)
 		if err != nil {
 			return nil, err
@@ -92,7 +93,7 @@ func Extract(decrypted []DecryptedObject) ([]ArchiveInfo, error) {
 		}
 		// track newly unzipped repo for future git operations
 		a := ArchiveInfo{DirPath: filepath.Join(path, gitNestedPath)}
-		err = extractGitRemote(&a, dec.Key)
+		err = d.extractGitRemote(&a, dec.Key)
 		if err != nil {
 			return nil, err
 		}
@@ -101,37 +102,26 @@ func Extract(decrypted []DecryptedObject) ([]ArchiveInfo, error) {
 	return archives, nil
 }
 
-// decodes an s3 object key and extracts the gitlab remote url
-// expected format of decoded s3 key is destination_url/commit_sha/branch
-func extractGitRemote(a *ArchiveInfo, encodedKey string) error {
-	// original object keys are base64 encoded and appended with file extension
-	encodedKeySegments := strings.SplitN(encodedKey, ".", 2)
-	decodedKeyBytes, err := base64.StdEncoding.DecodeString(encodedKeySegments[0])
+// decodes an s3 object key and extracts the gitlab remote target information
+func (d *Downloader) extractGitRemote(a *ArchiveInfo, encodedKey string) error {
+	// remove file extension before attempting decode
+	// extension is .tar.age, split at first occurrence of .
+	encodedGitInfo := strings.SplitN(encodedKey, ".", 2)[0]
+	decodedBytes, err := base64.StdEncoding.DecodeString(encodedGitInfo)
 	if err != nil {
 		return err
 	}
-	decodedKey := string(decodedKeyBytes)
-	decodedKeySegments := strings.Split(decodedKey, "/")
-	url := fmt.Sprintf("%s.git",
-		// remove the trailing commit sha and branch
-		strings.Join(decodedKeySegments[:len(decodedKeySegments)-2], "/"),
-	)
-	if err != nil {
-		return err
-	}
-	a.RemoteURL = url
-	a.RemoteBranch = decodedKeySegments[len(decodedKeySegments)-1]
-	a.ShortSHA = decodedKeySegments[len(decodedKeySegments)-2][:7] // only take 7 characters of sha
-	return nil
-}
 
-// ensure clean directory directory before unzipping
-func clear(working string) error {
-	cmd := exec.Command("rm", "-rf", "repos/")
-	cmd.Dir = working
-	err := cmd.Run()
+	// unmarshal decoded key (json) into struct defined by gitlab-sync-s3-push
+	var jsonKey pushPkg.DecodedKey
+	err = json.Unmarshal(decodedBytes, &jsonKey)
 	if err != nil {
 		return err
 	}
-	return err
+
+	a.RemoteGroup = jsonKey.Group
+	a.RemoteName = jsonKey.ProjectName
+	a.RemoteBranch = jsonKey.Branch
+	a.ShortSHA = jsonKey.CommitSHA[:7] // only take 7 characters of sha
+	return nil
 }
