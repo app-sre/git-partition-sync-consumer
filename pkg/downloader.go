@@ -54,9 +54,9 @@ func (d *Downloader) Run(ctx context.Context, dryRun bool) error {
 
 	d.initS3Client()
 
-	ctx, cancelReq := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancelReq()
-	encryptedUpdates, err := d.getUpdatedObjects(ctx)
+	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	encryptedUpdates, err := d.getUpdatedObjects(ctxTimeout)
 	if err != nil {
 		return err
 	}
@@ -64,6 +64,10 @@ func (d *Downloader) Run(ctx context.Context, dryRun bool) error {
 	if len(encryptedUpdates) < 1 {
 		log.Println("Everything is up to date. Exiting early.")
 		return nil
+	}
+
+	for _, obj := range encryptedUpdates {
+		defer obj.Reader().Close()
 	}
 
 	decryptedObjs, err := d.decryptBundles(encryptedUpdates)

@@ -96,7 +96,6 @@ func (d *Downloader) getS3Object(ctx context.Context, key string, wg *sync.WaitG
 		object.err = err
 		ch <- object
 	}
-	defer result.Body.Close()
 
 	object.body = result.Body
 	object.objKey = key

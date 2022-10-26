@@ -14,7 +14,6 @@ type EncryptedObject interface {
 type DecryptedObject struct {
 	Key          string
 	DecryptedTar io.Reader
-	err          error
 }
 
 // utilizes x25519 private key to decrypt s3 object bodies (repo tars) and return

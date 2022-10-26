@@ -7,8 +7,9 @@ import (
 )
 
 // Push local repos to remotes
-func (d *Downloader) pushLatest(archives []ArchiveInfo) error {
+func (d *Downloader) pushLatest(archives []*UntarInfo) error {
 	for _, archive := range archives {
+
 		authURL, err := d.formatAuthURL(fmt.Sprintf("%s/%s", archive.RemoteGroup, archive.RemoteName))
 		if err != nil {
 			return err
