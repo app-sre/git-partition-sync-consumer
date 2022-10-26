@@ -17,6 +17,9 @@ type DecryptedObject struct {
 	err          error
 }
 
+// utilizes x25519 private key to decrypt s3 object bodies (repo tars) and return
+// list of decrypted objects
+// see: https://github.com/FiloSottile/age
 func (d *Downloader) decryptBundles(objects []EncryptedObject) ([]*DecryptedObject, error) {
 	decrypted := []*DecryptedObject{}
 

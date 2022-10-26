@@ -22,7 +22,7 @@ type ArchiveInfo struct {
 	ShortSHA     string
 }
 
-// unzip the content of decrypted s3 objects
+// "untar" the content of decrypted s3 objects
 // each directory is created at current working dir with name of object key
 // adaption of: https://medium.com/@skdomino/taring-untaring-files-in-go-6b07cf56bc07
 func (d *Downloader) extract(decrypted []*DecryptedObject) ([]ArchiveInfo, error) {

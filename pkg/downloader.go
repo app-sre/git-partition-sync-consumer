@@ -104,6 +104,8 @@ func (d *Downloader) Run(ctx context.Context, dryRun bool) error {
 		)
 	}
 
+	log.Println("Sync successfully completed.")
+
 	return nil
 }
 
