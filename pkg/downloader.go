@@ -27,7 +27,17 @@ type Downloader struct {
 	tmp   map[string]time.Time
 }
 
-func NewDownloader(awsAccessKey, awsSecretKey, awsRegion, bucket, glURL, glUsername, glToken, privateKey, workdir string) (*Downloader, error) {
+func NewDownloader(
+	awsAccessKey,
+	awsSecretKey,
+	awsRegion,
+	bucket,
+	glURL,
+	glUsername,
+	glToken,
+	privateKey,
+	workdir string) (*Downloader, error) {
+
 	cmd := exec.Command("mkdir", "-p", workdir)
 	err := cmd.Run()
 	if err != nil {
