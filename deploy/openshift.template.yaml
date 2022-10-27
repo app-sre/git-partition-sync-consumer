@@ -41,20 +41,7 @@ objects:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
           name: gitlab-sync-s3-pull
-          volumeMounts:
-          - name: private-gpg-key
-            mountPath: ${PRIVATE_GPG_PATH}
-            readOnly: true
           env:
-          - name: PRIVATE_GPG_PATH
-            value: ${PRIVATE_GPG_PATH}
-          - name: REQUEST_TIMEOUT
-            value: ${REQUEST_TIMEOUT}
-          - name: PRIVATE_GPG_PASSPHRASE
-            valueFrom:
-              secretKeyRef:
-                key: passphrase
-                name: ${VAULT_SECRET_NAME}
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
@@ -75,6 +62,11 @@ objects:
               secretKeyRef:
                 key: aws.s3.bucket
                 name: ${VAULT_SECRET_NAME}
+          - name: GITLAB_BASE_URL
+            valueFrom:
+              secretKeyRef:
+                key: gitlab.url
+                name: ${VAULT_SECRET_NAME}
           - name: GITLAB_USERNAME
             valueFrom:
               secretKeyRef:
@@ -84,6 +76,11 @@ objects:
             valueFrom:
               secretKeyRef:
                 key: gitlab.token
+                name: ${VAULT_SECRET_NAME}
+          - name: PRIVATE_KEY
+            valueFrom:
+              secretKeyRef:
+                key: private-key
                 name: ${VAULT_SECRET_NAME}
           resources:
             requests:
@@ -101,10 +98,6 @@ parameters:
   value: latest
   displayName: gitlab-sync-s3-pull version
   description: gitlab-sync-s3-pull version which defaults to latest
-- name: PRIVATE_GPG_PATH
-  value: /private.gpg
-- name: REQUEST_TIMEOUT
-  value: 60
 - name: MEMORY_REQUESTS
   value: 200Mi
 - name: MEMORY_LIMIT

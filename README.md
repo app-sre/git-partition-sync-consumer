@@ -17,7 +17,7 @@ Utility for pulling git archives from s3 and pushing to remote. Reliant on S3 ob
 
 ### Optional
 * RECONCILE_SLEEP_TIME - time between runs. defaults to 5 minutes (5m)
-* WORKDIR - local directory where io operations will be performed
+* WORKDIR - local directory where io operations will be performed. defaults to `/working`
 
 ## Execute
 ```
@@ -30,6 +30,5 @@ podman run -t \
     -e GITLAB_USERNAME="$GITLAB_USERNAME" \
     -e GITLAB_TOKEN="$GITLAB_TOKEN" \
     -e PRIVATE_KEY="$PRIVATE_KEY" \
-    -e WORKDIR="$WORKDIR" \
     quay.io/app-sre/gitlab-sync-s3-pull:latest -dry-run
 ```
