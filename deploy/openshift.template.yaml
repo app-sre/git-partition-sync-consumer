@@ -1,22 +1,22 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: gitlab-sync-pull
+  name: gitlab-sync-s3-pull
 objects:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: gitlab-sync-pull
+    name: gitlab-sync-s3-pull
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
     labels:
-      app: gitlab-sync-pull
+      app: gitlab-sync-s3-pull
     annotations:
-      ignore-check.kube-linter.io/minimum-three-replicas: "gitlab-sync-pull design does not adequately account for multiple replicas"
-      ignore-check.kube-linter.io/no-readiness-probe: "gitlab-sync-pull does not receive traffic"
+      ignore-check.kube-linter.io/minimum-three-replicas: "gitlab-sync-s3-pull design does not adequately account for multiple replicas"
+      ignore-check.kube-linter.io/no-readiness-probe: "gitlab-sync-s3-pull does not receive traffic"
       ignore-check.kube-linter.io/no-liveness-probe: "TODO: https://issues.redhat.com/browse/APPSRE-5919"
-    name: gitlab-sync-pull
+    name: gitlab-sync-s3-pull
   spec:
     replicas: ${{REPLICAS}}
     strategy:
@@ -26,13 +26,13 @@ objects:
         maxSurge: 1
     selector:
       matchLabels:
-        app: gitlab-sync-pull
+        app: gitlab-sync-s3-pull
     template:
       metadata:
         labels:
-          app: gitlab-sync-pull
+          app: gitlab-sync-s3-pull
       spec:
-        serviceAccountName: gitlab-sync-pull
+        serviceAccountName: gitlab-sync-s3-pull
         volumes:
         - name: private-gpg-key
           secret:
@@ -40,7 +40,7 @@ objects:
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
-          name: gitlab-sync-pull
+          name: gitlab-sync-s3-pull
           volumeMounts:
           - name: private-gpg-key
             mountPath: ${PRIVATE_GPG_PATH}
@@ -94,24 +94,24 @@ objects:
               cpu: ${CPU_LIMIT}
 parameters:
 - name: IMAGE
-  value: quay.io/app-sre/gitlab-sync-pull
-  displayName: gitlab-sync-pull image
-  description: gitlab-sync-pull docker image. Defaults to quay.io/app-sre/gitlab-sync-pull
+  value: quay.io/app-sre/gitlab-sync-s3-pull
+  displayName: gitlab-sync-s3-pull image
+  description: gitlab-sync-s3-pull docker image. Defaults to quay.io/app-sre/gitlab-sync-s3-pull
 - name: IMAGE_TAG
   value: latest
-  displayName: gitlab-sync-pull version
-  description: gitlab-sync-pull version which defaults to latest
+  displayName: gitlab-sync-s3-pull version
+  description: gitlab-sync-s3-pull version which defaults to latest
 - name: PRIVATE_GPG_PATH
   value: /private.gpg
 - name: REQUEST_TIMEOUT
   value: 60
 - name: MEMORY_REQUESTS
-  value: 25Mi
+  value: 200Mi
 - name: MEMORY_LIMIT
-  value: 100Mi
+  value: 200Mi
 - name: CPU_REQUESTS
-  value: 25m
-- name: CPU_LIMIT
   value: 100m
+- name: CPU_LIMIT
+  value: 150m
 - name: VAULT_SECRET_NAME
-  value: gitlab-sync-pull
+  value: gitlab-sync-s3-pull

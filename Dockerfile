@@ -4,7 +4,7 @@ COPY . .
 RUN make build
 
 FROM registry.access.redhat.com/ubi8-minimal
-COPY --from=builder /build/gitlab-sync-pull  /bin/gitlab-sync-pull
+COPY --from=builder /build/gitlab-sync-s3-pull  /bin/gitlab-sync-s3-pull
 RUN microdnf install git
 
-ENTRYPOINT  [ "/bin/gitlab-sync-pull" ]
+ENTRYPOINT  [ "/bin/gitlab-sync-s3-pull" ]

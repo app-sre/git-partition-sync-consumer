@@ -1,6 +1,8 @@
 # github.com/app-sre/gitlab-sync-s3-pull
 Utility for pulling git archives from s3 and pushing to remote. Reliant on S3 object key format outputted by [gitlab-sync-s3-push](https://github.com/dwelch0/gitlab-sync-s3-push)
 
+![gitlab-sync-diagram](gitsync-diagram.png)
+
 ## Environment Variables
 
 ### Required
@@ -28,5 +30,6 @@ podman run -t \
     -e GITLAB_USERNAME="$GITLAB_USERNAME" \
     -e GITLAB_TOKEN="$GITLAB_TOKEN" \
     -e PRIVATE_KEY="$PRIVATE_KEY" \
-    quay.io/app-sre/gitlab-sync-pull:latest -dry-run
+    -e WORKDIR="$WORKDIR" \
+    quay.io/app-sre/gitlab-sync-s3-pull:latest -dry-run
 ```
