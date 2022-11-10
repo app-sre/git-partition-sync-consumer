@@ -1,22 +1,22 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: gitlab-sync-s3-pull
+  name: git-partition-sync-consumer
 objects:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: gitlab-sync-s3-pull
+    name: git-partition-sync-consumer
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
     labels:
-      app: gitlab-sync-s3-pull
+      app: git-partition-sync-consumer
     annotations:
-      ignore-check.kube-linter.io/minimum-three-replicas: "gitlab-sync-s3-pull design does not adequately account for multiple replicas"
-      ignore-check.kube-linter.io/no-readiness-probe: "gitlab-sync-s3-pull does not receive traffic"
+      ignore-check.kube-linter.io/minimum-three-replicas: "git-partition-sync-consumer design does not adequately account for multiple replicas"
+      ignore-check.kube-linter.io/no-readiness-probe: "git-partition-sync-consumer does not receive traffic"
       ignore-check.kube-linter.io/no-liveness-probe: "TODO: https://issues.redhat.com/browse/APPSRE-5919"
-    name: gitlab-sync-s3-pull
+    name: git-partition-sync-consumer
   spec:
     replicas: ${{REPLICAS}}
     strategy:
@@ -26,13 +26,13 @@ objects:
         maxSurge: 1
     selector:
       matchLabels:
-        app: gitlab-sync-s3-pull
+        app: git-partition-sync-consumer
     template:
       metadata:
         labels:
-          app: gitlab-sync-s3-pull
+          app: git-partition-sync-consumer
       spec:
-        serviceAccountName: gitlab-sync-s3-pull
+        serviceAccountName: git-partition-sync-consumer
         volumes:
         - name: private-gpg-key
           secret:
@@ -40,7 +40,7 @@ objects:
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
-          name: gitlab-sync-s3-pull
+          name: git-partition-sync-consumer
           env:
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
@@ -91,13 +91,13 @@ objects:
               cpu: ${CPU_LIMIT}
 parameters:
 - name: IMAGE
-  value: quay.io/app-sre/gitlab-sync-s3-pull
-  displayName: gitlab-sync-s3-pull image
-  description: gitlab-sync-s3-pull docker image. Defaults to quay.io/app-sre/gitlab-sync-s3-pull
+  value: quay.io/app-sre/git-partition-sync-consumer
+  displayName: git-partition-sync-consumer image
+  description: git-partition-sync-consumer docker image. Defaults to quay.io/app-sre/git-partition-sync-consumer
 - name: IMAGE_TAG
   value: latest
-  displayName: gitlab-sync-s3-pull version
-  description: gitlab-sync-s3-pull version which defaults to latest
+  displayName: git-partition-sync-consumer version
+  description: git-partition-sync-consumer version which defaults to latest
 - name: MEMORY_REQUESTS
   value: 200Mi
 - name: MEMORY_LIMIT
@@ -107,4 +107,4 @@ parameters:
 - name: CPU_LIMIT
   value: 150m
 - name: VAULT_SECRET_NAME
-  value: gitlab-sync-s3-pull
+  value: git-partition-sync-consumer
