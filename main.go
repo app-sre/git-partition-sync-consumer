@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/dwelch0/gitlab-sync-s3-pull/pkg"
+	"github.com/app-sre/git-partition-sync-consumer/pkg"
 )
 
 func main() {

@@ -1,13 +1,13 @@
-module github.com/dwelch0/gitlab-sync-s3-pull
+module github.com/app-sre/git-partition-sync-consumer
 
 go 1.18
 
 require (
 	filippo.io/age v1.0.0
+	github.com/app-sre/git-partition-sync-producer v1.0.0
 	github.com/aws/aws-sdk-go-v2 v1.17.1
-	github.com/aws/aws-sdk-go-v2/credentials v1.12.23
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.1
-	github.com/dwelch0/gitlab-sync-s3-push v0.0.1
+	github.com/aws/aws-sdk-go-v2/credentials v1.12.24
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.2
 )
 
 require (
@@ -24,8 +24,10 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
-	github.com/xanzy/go-gitlab v0.73.1 // indirect
-	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70 // indirect
+	github.com/machinebox/graphql v0.2.2 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/xanzy/go-gitlab v0.74.0 // indirect
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48 // indirect
 	golang.org/x/oauth2 v0.0.0-20220722155238-128564f6959c // indirect
 	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect

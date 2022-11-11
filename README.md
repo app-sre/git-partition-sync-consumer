@@ -1,5 +1,5 @@
-# git-partition-sync-consumer
-Utility for pulling git archives from s3 and pushing to remote. Reliant on S3 object key format outputted by [gitlab-sync-s3-push](https://github.com/dwelch0/gitlab-sync-s3-push)
+# Git Partition Sync - Consumer
+Utility for pulling git archives from s3 and pushing to remote. Reliant on S3 object key format outputted by [gitlab-sync-s3-push](https://github.com/app-sre/git-partition-sync-producer)
 
 ![gitlab-sync-diagram](gitsync-diagram.png)
 
