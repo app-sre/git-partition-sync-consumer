@@ -15,7 +15,6 @@ objects:
     annotations:
       ignore-check.kube-linter.io/minimum-three-replicas: "git-partition-sync-consumer design does not adequately account for multiple replicas"
       ignore-check.kube-linter.io/no-readiness-probe: "git-partition-sync-consumer does not receive traffic"
-      ignore-check.kube-linter.io/no-liveness-probe: "TODO: https://issues.redhat.com/browse/APPSRE-5919"
     name: git-partition-sync-consumer
   spec:
     replicas: ${{REPLICAS}}
@@ -33,15 +32,15 @@ objects:
           app: git-partition-sync-consumer
       spec:
         serviceAccountName: git-partition-sync-consumer
-        volumes:
-        - name: private-gpg-key
-          secret:
-            secretName: private-gpg-key
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
           name: git-partition-sync-consumer
           env:
+          - name: RECONCILE_SLEEP_TIME
+            value: ${RECONCILE_SLEEP_TIME}
+          - name: WORKDIR
+            value: ${WORKDIR}
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
@@ -98,6 +97,13 @@ parameters:
   value: latest
   displayName: git-partition-sync-consumer version
   description: git-partition-sync-consumer version which defaults to latest
+- name: RECONCILE_SLEEP_TIME
+  value: '15m'
+- name: DRY_RUN
+  description: runs vault-manager in dry-run mode when true
+  value: 'true'
+- name: WORKDIR
+  value: '/working'
 - name: MEMORY_REQUESTS
   value: 200Mi
 - name: MEMORY_LIMIT
