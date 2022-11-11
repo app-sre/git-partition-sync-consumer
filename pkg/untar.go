@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	pushPkg "github.com/dwelch0/gitlab-sync-s3-push/pkg"
+	pushPkg "github.com/app-sre/git-partition-sync-producer/pkg"
 )
 
 type UntarInfo struct {
