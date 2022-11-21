@@ -32,6 +32,17 @@ objects:
           app: git-partition-sync-consumer
       spec:
         serviceAccountName: git-partition-sync-consumer
+        initContainers:
+        - name: internal-certificates
+          image: ${INTERNAL_CERTIFICATES_IMAGE}:${INTERNAL_CERTIFICATES_IMAGE_TAG}
+          imagePullPolicy: ${INTERNAL_CERTIFICATES_IMAGE_PULL_POLICY}
+          command: ["/bin/sh", "-c"]
+          args:
+          - |
+            cp -r /etc/pki/. /tmp/etc-pki/
+          volumeMounts:
+          - name: internal-certificates
+            mountPath: /tmp/etc-pki/
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
@@ -41,7 +52,7 @@ objects:
           - name: RECONCILE_SLEEP_TIME
             value: ${RECONCILE_SLEEP_TIME}
           - name: WORKDIR
-            value: ${WORKDIR}
+            value: ${VOLUME_PATH}/${WORKDIR}
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
@@ -89,6 +100,16 @@ objects:
             limits:
               memory: ${MEMORY_LIMIT}
               cpu: ${CPU_LIMIT}
+          volumeMounts:
+          - name: sync-ops
+            mountPath: ${VOLUME_PATH}
+          - name: internal-certificates
+            mountPath: /etc/pki/
+        volumes:
+        - name: sync-ops
+          emptyDir: {}
+        - name: internal-certificates
+          emptyDir: {}
 parameters:
 - name: IMAGE
   value: quay.io/app-sre/git-partition-sync-consumer
@@ -98,11 +119,19 @@ parameters:
   value: latest
   displayName: git-partition-sync-consumer version
   description: git-partition-sync-consumer version which defaults to latest
+- name: INTERNAL_CERTIFICATES_IMAGE
+  value: quay.io/app-sre/internal-redhat-ca
+- name: INTERNAL_CERTIFICATES_IMAGE_TAG
+  value: latest
+- name: INTERNAL_CERTIFICATES_IMAGE_PULL_POLICY
+  value: Always
 - name: RECONCILE_SLEEP_TIME
   value: '15m'
 - name: DRY_RUN
   description: runs vault-manager in dry-run mode when true
   value: 'true'
+- name: VOLUME_PATH
+  value: '/sync-ops'
 - name: WORKDIR
   value: '/working'
 - name: MEMORY_REQUESTS
