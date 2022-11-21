@@ -130,6 +130,8 @@ parameters:
   value: '/sync-ops'
 - name: WORKDIR
   value: '/working'
+- name: REPLICAS
+  value: '1'
 - name: MEMORY_REQUESTS
   value: 200Mi
 - name: MEMORY_LIMIT
