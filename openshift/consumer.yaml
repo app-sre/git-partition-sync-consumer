@@ -91,7 +91,7 @@ objects:
           - name: PRIVATE_KEY
             valueFrom:
               secretKeyRef:
-                key: private-key
+                key: private.key
                 name: ${VAULT_SECRET_NAME}
           resources:
             requests:
