@@ -89,11 +89,8 @@ objects:
           - name: sync-ops
             mountPath: ${VOLUME_PATH}
           - name: ca-certs
-            mountPath: /etc/ssl/certs/redhatroot.pem
-            subPath: redhatroot.pem
-          - name:  ca-certs
-            mountPath: /etc/ssl/certs/redhatsub.pem
-            subPath: redhatsub.pem
+            mountPath: /etc/pki/ca-trust/source/anchors/ca.crt
+            subPath: ca.crt
         volumes:
         - name: sync-ops
           emptyDir: {}
@@ -101,10 +98,8 @@ objects:
           secret:
             secretName: ca-certs
             items:
-            - key: redhatroot.pem
-              path: redhatroot.pem
-            - key: redhatsub.pem
-              path: redhatsub.pem
+            - key: ca.crt
+              path: ca.crt
 parameters:
 - name: IMAGE
   value: quay.io/app-sre/git-partition-sync-consumer
