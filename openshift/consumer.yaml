@@ -132,7 +132,7 @@ parameters:
 - name: VOLUME_PATH
   value: '/sync-ops'
 - name: WORKDIR
-  value: '/working'
+  value: 'working'
 - name: REPLICAS
   value: '1'
 - name: MEMORY_REQUESTS
