@@ -28,17 +28,6 @@ objects:
           app: git-partition-sync-consumer
       spec:
         serviceAccountName: git-partition-sync-consumer
-        initContainers:
-        - name: internal-certificates
-          image: ${INTERNAL_CERTIFICATES_IMAGE}:${INTERNAL_CERTIFICATES_IMAGE_TAG}
-          imagePullPolicy: ${INTERNAL_CERTIFICATES_IMAGE_PULL_POLICY}
-          command: ["/bin/sh", "-c"]
-          args:
-          - |
-            cp -r /etc/pki/. /tmp/etc-pki/
-          volumeMounts:
-          - name: internal-certificates
-            mountPath: /tmp/etc-pki/
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
@@ -99,13 +88,23 @@ objects:
           volumeMounts:
           - name: sync-ops
             mountPath: ${VOLUME_PATH}
-          - name: internal-certificates
-            mountPath: /etc/pki/
+          - name: ca-certs
+            mountPath: /etc/ssl/certs/redhatroot.pem
+            subPath: redhatroot.pem
+          - name:  ca-certs
+            mountPath: /etc/ssl/certs/redhatsub.pem
+            subPath: redhatsub.pem
         volumes:
         - name: sync-ops
           emptyDir: {}
-        - name: internal-certificates
-          emptyDir: {}
+        - name: ca-certs
+          secret:
+            secretName: ca-certs
+            items:
+            - key: redhatroot.pem
+              path: redhatroot.pem
+            - key: redhatsub.pem
+              path: redhatsub.pem
 parameters:
 - name: IMAGE
   value: quay.io/app-sre/git-partition-sync-consumer
@@ -115,12 +114,6 @@ parameters:
   value: latest
   displayName: git-partition-sync-consumer version
   description: git-partition-sync-consumer version which defaults to latest
-- name: INTERNAL_CERTIFICATES_IMAGE
-  value: quay.io/app-sre/internal-redhat-ca
-- name: INTERNAL_CERTIFICATES_IMAGE_TAG
-  value: latest
-- name: INTERNAL_CERTIFICATES_IMAGE_PULL_POLICY
-  value: Always
 - name: RECONCILE_SLEEP_TIME
   value: '15m'
 - name: DRY_RUN
