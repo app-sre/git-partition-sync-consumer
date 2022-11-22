@@ -22,11 +22,12 @@ type UntarInfo struct {
 	ShortSHA     string
 }
 
+const UNTAR_DIRECTORY = "untarred-repos"
+
 // "untar" the content of decrypted s3 objects
 // each directory is created at current working dir with name of object key
 // adaption of: https://medium.com/@skdomino/taring-untaring-files-in-go-6b07cf56bc07
 func (d *Downloader) extract(decrypted []*DecryptedObject) ([]*UntarInfo, error) {
-	const UNTAR_DIRECTORY = "untarred-repos"
 
 	err := d.clean(UNTAR_DIRECTORY)
 	if err != nil {

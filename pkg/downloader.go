@@ -62,6 +62,8 @@ func NewDownloader(
 func (d *Downloader) Run(ctx context.Context, dryRun bool) error {
 	log.Println("Beginning sync...")
 
+	defer d.clear()
+
 	d.initS3Client()
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
@@ -134,6 +136,17 @@ func (d *Downloader) clean(directory string) error {
 	cmd = exec.Command("mkdir", directory)
 	cmd.Dir = d.workdir
 	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// clear all items in working directory
+func (d *Downloader) clear() error {
+	cmd := exec.Command("rm", "-rf", UNTAR_DIRECTORY)
+	cmd.Dir = d.workdir
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}
