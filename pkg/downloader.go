@@ -143,9 +143,9 @@ func (d *Downloader) clean(directory string) error {
 }
 
 // clear all items in working directory
-func (u *Downloader) clear() error {
+func (d *Downloader) clear() error {
 	cmd := exec.Command("rm", "-rf", UNTAR_DIRECTORY)
-	cmd.Dir = u.workdir
+	cmd.Dir = d.workdir
 	err := cmd.Run()
 	if err != nil {
 		return err
