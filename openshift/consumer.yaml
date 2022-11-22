@@ -89,10 +89,10 @@ objects:
           - name: sync-ops
             mountPath: ${VOLUME_PATH}
           - name: ca-certs
-            mountPath: /etc/ssl/certs/redhatroot.pem
+            mountPath: /etc/pki/ca-trust/source/anchors/redhatroot.pem
             subPath: redhatroot.pem
           - name:  ca-certs
-            mountPath: /etc/ssl/certs/redhatsub.pem
+            mountPath: /etc/pki/ca-trust/source/anchors/redhatsub.pem
             subPath: redhatsub.pem
         volumes:
         - name: sync-ops
