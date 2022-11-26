@@ -28,6 +28,18 @@ objects:
           app: git-partition-sync-consumer
       spec:
         serviceAccountName: git-partition-sync-consumer
+        initContainers:
+        - name: internal-certificates
+          image:
+          imagePullPolicy: always
+          command: ["/bin/sh", "-c"]
+          args: ["update-ca-trust && cp -r /etc/pki/. tmp/etc-pki/"]
+          volumeMounts:
+          - name: internal-certificates
+            mountPath: /tmp/etc-pki/
+          - name: ca-certs
+            mountPath: /etc/pki/ca-trust/source/anchors/ca.crt
+            subPath: ca.crt
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
@@ -88,11 +100,12 @@ objects:
           volumeMounts:
           - name: sync-ops
             mountPath: ${VOLUME_PATH}
-          - name: ca-certs
-            mountPath: /etc/pki/ca-trust/source/anchors/ca.crt
-            subPath: ca.crt
+          - name: internal-certificates
+            mountPath: /etc/pki/
         volumes:
         - name: sync-ops
+          emptyDir: {}
+        - name: internal-certificates
           emptyDir: {}
         - name: ca-certs
           secret:
@@ -109,6 +122,12 @@ parameters:
   value: latest
   displayName: git-partition-sync-consumer version
   description: git-partition-sync-consumer version which defaults to latest
+- name: INTERNAL_CERT_INIT_IMAGE
+  value: quay.io/app-sre/ubi8-ubi-minimal
+- name: INTERNAL_CERT_INIT_IMAGE
+  value: latest
+- name: INTERNAL_CERT_INIT_IMAGE_PULL_POLICY
+  value: always
 - name: RECONCILE_SLEEP_TIME
   value: '15m'
 - name: DRY_RUN
