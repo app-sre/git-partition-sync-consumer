@@ -19,7 +19,7 @@ func (d *Downloader) pushLatest(archives []*UntarInfo) error {
 			"-c",
 			fmt.Sprintf("%s && %s",
 				fmt.Sprintf("git remote add fedramp %s", authURL),
-				fmt.Sprintf("git push -u fedramp %s", archive.RemoteBranch),
+				fmt.Sprintf("git push -u fedramp %s --force", archive.RemoteBranch),
 			),
 		}
 		cmd := exec.Command("/bin/sh", args...)
