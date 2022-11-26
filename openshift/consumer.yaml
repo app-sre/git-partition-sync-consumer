@@ -30,8 +30,8 @@ objects:
         serviceAccountName: git-partition-sync-consumer
         initContainers:
         - name: internal-certificates
-          image:
-          imagePullPolicy: always
+          image: ${INTERNAL_CERT_INIT_IMAGE}:${INTERNAL_CERT_INIT_IMAGE_TAG}
+          imagePullPolicy: ${INTERNAL_CERT_INIT_IMAGE_PULL_POLICY}
           command: ["/bin/sh", "-c"]
           args: ["update-ca-trust && cp -r /etc/pki/. tmp/etc-pki/"]
           volumeMounts:
@@ -124,7 +124,7 @@ parameters:
   description: git-partition-sync-consumer version which defaults to latest
 - name: INTERNAL_CERT_INIT_IMAGE
   value: quay.io/app-sre/ubi8-ubi-minimal
-- name: INTERNAL_CERT_INIT_IMAGE
+- name: INTERNAL_CERT_INIT_IMAGE_TAG
   value: latest
 - name: INTERNAL_CERT_INIT_IMAGE_PULL_POLICY
   value: always
