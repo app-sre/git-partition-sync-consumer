@@ -127,7 +127,7 @@ parameters:
 - name: INTERNAL_CERT_INIT_IMAGE_TAG
   value: latest
 - name: INTERNAL_CERT_INIT_IMAGE_PULL_POLICY
-  value: always
+  value: Always
 - name: RECONCILE_SLEEP_TIME
   value: '15m'
 - name: DRY_RUN
