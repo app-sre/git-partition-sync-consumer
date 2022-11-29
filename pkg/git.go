@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"os/exec"
 )
 
@@ -15,13 +16,30 @@ func (d *Downloader) pushLatest(archives []*UntarInfo) error {
 			return err
 		}
 
-		args := []string{
-			"-c",
-			fmt.Sprintf("%s && %s",
-				fmt.Sprintf("git remote add fedramp %s", authURL),
-				fmt.Sprintf("git push -u fedramp %s --force", archive.RemoteBranch),
-			),
+		// include command to trust internal git server certificate if path is set
+		caPath := os.Getenv("INTERNAL_GIT_CA_PATH")
+		var args []string
+		if len(caPath) > 0 {
+			args = []string{
+				"-c",
+				fmt.Sprintf("%s && %s && %s",
+					// this config must be set per repo (cannot be done once with --global flag)
+					// due to permission constraint when attempting to edit root gitconfig
+					fmt.Sprintf("git config http.sslCAInfo /etc/pki/ca-trust/source/anchors/ca.crt"),
+					fmt.Sprintf("git remote add fedramp %s", authURL),
+					fmt.Sprintf("git push -u fedramp %s --force", archive.RemoteBranch),
+				),
+			}
+		} else {
+			args = []string{
+				"-c",
+				fmt.Sprintf("%s && %s",
+					fmt.Sprintf("git remote add fedramp %s", authURL),
+					fmt.Sprintf("git push -u fedramp %s --force", archive.RemoteBranch),
+				),
+			}
 		}
+
 		cmd := exec.Command("/bin/sh", args...)
 		cmd.Dir = archive.DirPath
 		err = cmd.Run()
