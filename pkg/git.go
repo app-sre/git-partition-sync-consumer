@@ -9,15 +9,15 @@ import (
 
 // Push local repos to remotes
 func (d *Downloader) pushLatest(archives []*UntarInfo) error {
-	for _, archive := range archives {
+	// include command to trust internal git server certificate if set
+	caPath := os.Getenv("INTERNAL_GIT_CA_PATH")
 
+	for _, archive := range archives {
 		authURL, err := d.formatAuthURL(fmt.Sprintf("%s/%s", archive.RemoteGroup, archive.RemoteName))
 		if err != nil {
 			return err
 		}
 
-		// include command to trust internal git server certificate if path is set
-		caPath := os.Getenv("INTERNAL_GIT_CA_PATH")
 		var args []string
 		if len(caPath) > 0 {
 			args = []string{
