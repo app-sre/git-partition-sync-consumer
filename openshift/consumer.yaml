@@ -33,12 +33,12 @@ objects:
           image: ${INTERNAL_CERT_INIT_IMAGE}:${INTERNAL_CERT_INIT_IMAGE_TAG}
           imagePullPolicy: ${INTERNAL_CERT_INIT_IMAGE_PULL_POLICY}
           command: ["/bin/sh", "-c"]
-          args: ["cp /tmp/etc-pki/ca.crt /etc/pki/ca-trust/source/anchors/ca.crt && update-ca-trust"]
+          args: ["update-ca-trust"]
           volumeMounts:
           - name: ca-extracted
             mountPath: /etc/pki/ca-trust/extracted
           - name: ca-certs
-            mountPath: /tmp/etc-pki/ca.crt
+            mountPath: /etc/pki/ca-trust/source/anchors/ca.crt
             subPath: ca.crt
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
