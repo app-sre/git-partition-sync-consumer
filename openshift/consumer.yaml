@@ -28,18 +28,6 @@ objects:
           app: git-partition-sync-consumer
       spec:
         serviceAccountName: git-partition-sync-consumer
-        initContainers:
-        - name: init-internal-certs
-          image: ${INTERNAL_CERT_INIT_IMAGE}:${INTERNAL_CERT_INIT_IMAGE_TAG}
-          imagePullPolicy: ${INTERNAL_CERT_INIT_IMAGE_PULL_POLICY}
-          command: ["/bin/sh", "-c"]
-          args: ["update-ca-trust"]
-          volumeMounts:
-          - name: ca-extracted
-            mountPath: /etc/pki/ca-trust/extracted
-          - name: ca-certs
-            mountPath: /etc/pki/ca-trust/source/anchors/ca.crt
-            subPath: ca.crt
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
@@ -50,6 +38,8 @@ objects:
             value: ${RECONCILE_SLEEP_TIME}
           - name: WORKDIR
             value: ${VOLUME_PATH}/${WORKDIR}
+          - name: INTERNAL_GIT_CA_PATH
+            value: ${INTERNAL_GIT_CA_PATH}
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
@@ -100,12 +90,11 @@ objects:
           volumeMounts:
           - name: sync-ops
             mountPath: ${VOLUME_PATH}
-          - name: ca-extracted
-            mountPath: /etc/pki/ca-trust/extracted
+          - name: ca-certs
+            mountPath: ${INTERNAL_GIT_CA_PATH}
+            subPath: ca.crt
         volumes:
         - name: sync-ops
-          emptyDir: {}
-        - name: ca-extracted
           emptyDir: {}
         - name: ca-certs
           secret:
@@ -122,12 +111,6 @@ parameters:
   value: latest
   displayName: git-partition-sync-consumer version
   description: git-partition-sync-consumer version which defaults to latest
-- name: INTERNAL_CERT_INIT_IMAGE
-  value: quay.io/app-sre/ubi8-ubi-minimal
-- name: INTERNAL_CERT_INIT_IMAGE_TAG
-  value: latest
-- name: INTERNAL_CERT_INIT_IMAGE_PULL_POLICY
-  value: Always
 - name: RECONCILE_SLEEP_TIME
   value: '15m'
 - name: DRY_RUN
@@ -152,3 +135,6 @@ parameters:
   value: 150m
 - name: VAULT_SECRET_NAME
   value: git-partition-sync-consumer
+- name: INTERNAL_GIT_CA_PATH
+  description: 'path to certificate file to add in git config trust'
+  value: '/etc/pki/ca-trust/source/anchors/ca.crt'
