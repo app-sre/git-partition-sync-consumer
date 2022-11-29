@@ -91,19 +91,17 @@ objects:
           - name: sync-ops
             mountPath: ${VOLUME_PATH}
           - name: ca-certs
-            mountPath: /etc/pki/ca-trust/source/anchors/${INTERNAL_GIT_CA_PATH}
-            subPath: ${INTERNAL_GIT_CA_PATH}
+            mountPath: ${INTERNAL_GIT_CA_PATH}
+            subPath: ca.crt
         volumes:
         - name: sync-ops
-          emptyDir: {}
-        - name: ca-extracted
           emptyDir: {}
         - name: ca-certs
           secret:
             secretName: ca-certs
             items:
             - key: ca.crt
-              path: ${INTERNAL_GIT_CA_PATH}
+              path: ca.crt
 parameters:
 - name: IMAGE
   value: quay.io/app-sre/git-partition-sync-consumer
@@ -139,4 +137,4 @@ parameters:
   value: git-partition-sync-consumer
 - name: INTERNAL_GIT_CA_PATH
   description: 'path to certificate file to add in git config trust'
-  value: 'ca.crt'
+  value: '/etc/pki/ca-trust/source/anchors/ca.crt'

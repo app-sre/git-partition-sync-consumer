@@ -25,7 +25,7 @@ func (d *Downloader) pushLatest(archives []*UntarInfo) error {
 				fmt.Sprintf("%s && %s && %s",
 					// this config must be set per repo (cannot be done once with --global flag)
 					// due to permission constraint when attempting to edit root gitconfig
-					fmt.Sprintf("git config http.sslCAInfo /etc/pki/ca-trust/source/anchors/ca.crt"),
+					fmt.Sprintf("git config http.sslCAInfo %s", caPath),
 					fmt.Sprintf("git remote add fedramp %s", authURL),
 					fmt.Sprintf("git push -u fedramp %s --force", archive.RemoteBranch),
 				),
