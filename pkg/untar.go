@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"archive/tar"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -58,8 +59,15 @@ func (d *Downloader) extract(decrypted []*DecryptedObject) ([]*UntarInfo, error)
 }
 
 func Untar(tarred io.Reader, path string) error {
-	tr := tar.NewReader(tarred)
-	err := os.MkdirAll(path, os.ModePerm)
+	gzr, err := gzip.NewReader(tarred)
+	if err != nil {
+		return err
+	}
+	defer gzr.Close()
+
+	tr := tar.NewReader(gzr)
+
+	err = os.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		return err
 	}
