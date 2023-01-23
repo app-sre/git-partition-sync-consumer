@@ -66,9 +66,7 @@ func (d *Downloader) Run(ctx context.Context, dryRun bool) error {
 
 	d.initS3Client()
 
-	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
-	encryptedUpdates, err := d.getUpdatedObjects(ctxTimeout)
+	encryptedUpdates, err := d.getUpdatedObjects(ctx)
 	if err != nil {
 		return err
 	}

@@ -41,7 +41,10 @@ var _ EncryptedObject = S3object{}
 // call to aws api to list all objects within bucket set by AWS_S3_BUCKET
 // returns list of objects that do not match in memory <obj name: modified date> map
 func (d *Downloader) getUpdatedObjects(ctx context.Context) ([]EncryptedObject, error) {
-	objects, err := d.s3Client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
+	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	objects, err := d.s3Client.ListObjectsV2(ctxTimeout, &s3.ListObjectsV2Input{
 		Bucket: &d.bucket,
 	})
 	if err != nil {
@@ -87,8 +90,12 @@ func (d *Downloader) getUpdatedObjects(ctx context.Context) ([]EncryptedObject, 
 // aws call for details of specific object. returned via channel
 func (d *Downloader) getS3Object(ctx context.Context, key string, wg *sync.WaitGroup, ch chan<- S3object) {
 	defer wg.Done()
+
+	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
 	object := S3object{}
-	result, err := d.s3Client.GetObject(ctx, &s3.GetObjectInput{
+	result, err := d.s3Client.GetObject(ctxTimeout, &s3.GetObjectInput{
 		Bucket: &d.bucket,
 		Key:    &key,
 	})
