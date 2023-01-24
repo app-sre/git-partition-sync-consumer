@@ -66,7 +66,10 @@ func (d *Downloader) Run(ctx context.Context, dryRun bool) error {
 
 	d.initS3Client()
 
-	encryptedUpdates, err := d.getUpdatedObjects(ctx)
+	ctxCancel, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	encryptedUpdates, err := d.getUpdatedObjects(ctxCancel)
 	if err != nil {
 		return err
 	}

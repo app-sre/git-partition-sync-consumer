@@ -91,11 +91,8 @@ func (d *Downloader) getUpdatedObjects(ctx context.Context) ([]EncryptedObject, 
 func (d *Downloader) getS3Object(ctx context.Context, key string, wg *sync.WaitGroup, ch chan<- S3object) {
 	defer wg.Done()
 
-	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
-
 	object := S3object{}
-	result, err := d.s3Client.GetObject(ctxTimeout, &s3.GetObjectInput{
+	result, err := d.s3Client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &d.bucket,
 		Key:    &key,
 	})
