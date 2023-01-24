@@ -41,10 +41,10 @@ var _ EncryptedObject = S3object{}
 // call to aws api to list all objects within bucket set by AWS_S3_BUCKET
 // returns list of objects that do not match in memory <obj name: modified date> map
 func (d *Downloader) getUpdatedObjects(ctx context.Context) ([]EncryptedObject, error) {
-	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
+	ctxTimeoutList, cancelList := context.WithTimeout(ctx, time.Second*5)
+	defer cancelList()
 
-	objects, err := d.s3Client.ListObjectsV2(ctxTimeout, &s3.ListObjectsV2Input{
+	objects, err := d.s3Client.ListObjectsV2(ctxTimeoutList, &s3.ListObjectsV2Input{
 		Bucket: &d.bucket,
 	})
 	if err != nil {
@@ -65,9 +65,12 @@ func (d *Downloader) getUpdatedObjects(ctx context.Context) ([]EncryptedObject, 
 	var wg sync.WaitGroup
 	ch := make(chan S3object)
 
+	ctxTimeoutGet, cancelGet := context.WithTimeout(ctx, time.Second*10)
+	defer cancelGet()
+
 	for _, key := range updatedObjKeys {
 		wg.Add(1)
-		go d.getS3Object(ctx, *key, &wg, ch)
+		go d.getS3Object(ctxTimeoutGet, *key, &wg, ch)
 	}
 
 	go func() {
@@ -91,11 +94,8 @@ func (d *Downloader) getUpdatedObjects(ctx context.Context) ([]EncryptedObject, 
 func (d *Downloader) getS3Object(ctx context.Context, key string, wg *sync.WaitGroup, ch chan<- S3object) {
 	defer wg.Done()
 
-	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
-
 	object := S3object{}
-	result, err := d.s3Client.GetObject(ctxTimeout, &s3.GetObjectInput{
+	result, err := d.s3Client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &d.bucket,
 		Key:    &key,
 	})
