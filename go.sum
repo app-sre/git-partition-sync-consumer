@@ -1,7 +1,7 @@
 filippo.io/age v1.0.0 h1:V6q14n0mqYU3qKFkZ6oOaF9oXneOviS3ubXsSVBRSzc=
 filippo.io/age v1.0.0/go.mod h1:PaX+Si/Sd5G8LgfCwldsSba3H1DDQZhIhFGkhbHaBq8=
-github.com/app-sre/git-partition-sync-producer v1.0.0 h1:zcZ9I+AzHEk8e85pXEOtHmwuhUKotGrhcD/RtiaDxqY=
-github.com/app-sre/git-partition-sync-producer v1.0.0/go.mod h1:pJkxDnXhpf426ucYWGPesvtkOZGme2jeeUu/qB3XfNg=
+github.com/app-sre/git-partition-sync-producer v1.1.0 h1:I4x3qjLm6GWjPWzZr373HWs2HBXbIC8ggUwDHkS83so=
+github.com/app-sre/git-partition-sync-producer v1.1.0/go.mod h1:12n1ux0zlIQL6FN4YJ4GVB2iNU+4Au3xj6fkIWSW+Tc=
 github.com/aws/aws-sdk-go-v2 v1.17.1 h1:02c72fDJr87N8RAC2s3Qu0YuvMRZKNZJ9F+lAehCazk=
 github.com/aws/aws-sdk-go-v2 v1.17.1/go.mod h1:JLnGeGONAyi2lWXI1p0PCIOIy333JMVK1U7Hf0aRFLw=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.9 h1:RKci2D7tMwpvGpDNZnGQw9wk6v7o/xSwFcUAuNPoB8k=

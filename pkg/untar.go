@@ -17,6 +17,7 @@ import (
 
 type UntarInfo struct {
 	DirPath      string
+	LocalBranch  string
 	RemoteGroup  string
 	RemoteName   string
 	RemoteBranch string
@@ -138,9 +139,10 @@ func (d *Downloader) extractGitRemote(a *UntarInfo, encodedKey string) error {
 		return err
 	}
 
+	a.LocalBranch = jsonKey.LocalBranch
 	a.RemoteGroup = jsonKey.Group
 	a.RemoteName = jsonKey.ProjectName
-	a.RemoteBranch = jsonKey.Branch
+	a.RemoteBranch = jsonKey.RemoteBranch
 	a.ShortSHA = jsonKey.CommitSHA[:7] // only take 7 characters of sha
 	return nil
 }

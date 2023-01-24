@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	filippo.io/age v1.0.0
-	github.com/app-sre/git-partition-sync-producer v1.0.0
+	github.com/app-sre/git-partition-sync-producer v1.1.0
 	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.24
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.2
