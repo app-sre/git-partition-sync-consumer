@@ -1,10 +1,13 @@
 package pkg
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 // Push local repos to remotes
@@ -44,9 +47,11 @@ func (d *Downloader) pushLatest(archives []*UntarInfo) error {
 
 		cmd := exec.Command("/bin/sh", args...)
 		cmd.Dir = archive.DirPath
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
 		err = cmd.Run()
 		if err != nil {
-			return err
+			return errors.New(strings.ReplaceAll(stderr.String(), d.glToken, "[REDACTED]"))
 		}
 	}
 	return nil
