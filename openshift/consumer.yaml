@@ -126,13 +126,13 @@ parameters:
 - name: REPLICAS
   value: '1'
 - name: MEMORY_REQUESTS
-  value: 200Mi
+  value: 1000Mi
 - name: MEMORY_LIMIT
-  value: 200Mi
+  value: 1000Mi
 - name: CPU_REQUESTS
-  value: 100m
+  value: 300m
 - name: CPU_LIMIT
-  value: 150m
+  value: 500m
 - name: VAULT_SECRET_NAME
   value: git-partition-sync-consumer
 - name: INTERNAL_GIT_CA_PATH
