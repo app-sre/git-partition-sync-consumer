@@ -28,6 +28,8 @@ func main() {
 		"GITLAB_BASE_URL":       "",
 		"GITLAB_USERNAME":       "",
 		"GITLAB_TOKEN":          "",
+		"INSTANCE_SHARD":        "fedramp",
+		"METRICS_SERVER_PORT":   "9090",
 		"PRIVATE_KEY":           "",
 		"RECONCILE_SLEEP_TIME":  "5m",
 		"WORKDIR":               "/working",
@@ -49,6 +51,7 @@ func main() {
 		envVars["GITLAB_BASE_URL"],
 		envVars["GITLAB_USERNAME"],
 		envVars["GITLAB_TOKEN"],
+		envVars["METRICS_SERVER_PORT"],
 		envVars["PRIVATE_KEY"],
 		envVars["WORKDIR"],
 	)
@@ -58,7 +61,7 @@ func main() {
 
 	for {
 		ctx := context.Background()
-		err = downloader.Run(ctx, dryRun)
+		err = downloader.Run(ctx, envVars["INSTANCE_SHARD"], dryRun, runOnce)
 		if err != nil {
 			log.Fatalln(err)
 		}
