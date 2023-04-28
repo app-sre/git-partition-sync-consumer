@@ -41,7 +41,7 @@ func (d *Downloader) extract(decrypted []*DecryptedObject) ([]*UntarInfo, error)
 	archives := []*UntarInfo{}
 
 	// "untar" each s3 object's body and output to directory
-	// each dir is name of the s3 object's key (md5 hash of base64 encoded key)
+	// each dir is name of the s3 object's key (sha256 hash of base64 encoded key)
 	for _, dec := range decrypted {
 		b64GitInfo := strings.SplitN(dec.Key, ".", 2)[0]
 		// hash to avoid filename length constraint on host system
