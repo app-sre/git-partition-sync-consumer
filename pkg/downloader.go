@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/app-sre/git-partition-sync-consumer/pkg/metrics"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
@@ -19,6 +20,7 @@ type Downloader struct {
 	glUsername   string
 	glToken      string
 	privateKey   string
+	metricsPort  string
 	workdir      string
 
 	s3Client *s3.Client
@@ -35,6 +37,7 @@ func NewDownloader(
 	glURL,
 	glUsername,
 	glToken,
+	metricsPort,
 	privateKey,
 	workdir string) (*Downloader, error) {
 
@@ -53,16 +56,26 @@ func NewDownloader(
 		glUsername:   glUsername,
 		glToken:      glToken,
 		privateKey:   privateKey,
+		metricsPort:  metricsPort,
 		workdir:      workdir,
 		cache:        make(map[string]time.Time),
 		tmp:          make(map[string]time.Time),
 	}, nil
 }
 
-func (d *Downloader) Run(ctx context.Context, dryRun bool) error {
+func (d *Downloader) Run(ctx context.Context, shard string, dryRun, runOnce bool) error {
 	log.Println("Beginning sync...")
+	start := time.Now()
 
 	defer d.clear()
+
+	status := 1
+	if !runOnce {
+		metrics.Start(d.metricsPort)
+		defer func() {
+			metrics.RecordMetrics(shard, status, time.Since(start))
+		}()
+	}
 
 	d.initS3Client()
 
@@ -102,6 +115,7 @@ func (d *Downloader) Run(ctx context.Context, dryRun bool) error {
 					archive.ShortSHA),
 			)
 		}
+		status = 0
 		return nil
 	}
 
@@ -122,6 +136,7 @@ func (d *Downloader) Run(ctx context.Context, dryRun bool) error {
 	}
 
 	log.Println("Sync successfully completed.")
+	status = 0
 
 	return nil
 }
