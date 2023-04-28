@@ -3,7 +3,9 @@ package pkg
 import (
 	"archive/tar"
 	"compress/gzip"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -39,10 +41,12 @@ func (d *Downloader) extract(decrypted []*DecryptedObject) ([]*UntarInfo, error)
 	archives := []*UntarInfo{}
 
 	// "untar" each s3 object's body and output to directory
-	// each dir is name of the s3 object's key (this is base64 encoded still)
+	// each dir is name of the s3 object's key (sha256 hash of base64 encoded key)
 	for _, dec := range decrypted {
 		b64GitInfo := strings.SplitN(dec.Key, ".", 2)[0]
-		path := filepath.Join(d.workdir, UNTAR_DIRECTORY, b64GitInfo)
+		// hash to avoid filename length constraint on host system
+		hashed := sha256.Sum256([]byte(b64GitInfo))
+		path := filepath.Join(d.workdir, UNTAR_DIRECTORY, hex.EncodeToString(hashed[:]))
 
 		if err := Untar(dec.DecryptedTar, path); err != nil {
 			return nil, err
