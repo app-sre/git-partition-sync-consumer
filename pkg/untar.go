@@ -3,7 +3,7 @@ package pkg
 import (
 	"archive/tar"
 	"compress/gzip"
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -45,7 +45,7 @@ func (d *Downloader) extract(decrypted []*DecryptedObject) ([]*UntarInfo, error)
 	for _, dec := range decrypted {
 		b64GitInfo := strings.SplitN(dec.Key, ".", 2)[0]
 		// hash to avoid filename length constraint on host system
-		hashed := md5.Sum([]byte(b64GitInfo))
+		hashed := sha256.Sum256([]byte(b64GitInfo))
 		path := filepath.Join(d.workdir, UNTAR_DIRECTORY, hex.EncodeToString(hashed[:]))
 
 		if err := Untar(dec.DecryptedTar, path); err != nil {
