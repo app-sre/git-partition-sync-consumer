@@ -26,6 +26,7 @@ objects:
       metadata:
         labels:
           app: git-partition-sync-consumer
+          component: qontract-reconcile
       spec:
         serviceAccountName: git-partition-sync-consumer
         containers:
