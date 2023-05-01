@@ -20,7 +20,7 @@ type Downloader struct {
 	glUsername   string
 	glToken      string
 	privateKey   string
-	metricsPort  string
+	shard        string
 	workdir      string
 
 	s3Client *s3.Client
@@ -39,12 +39,18 @@ func NewDownloader(
 	glToken,
 	metricsPort,
 	privateKey,
-	workdir string) (*Downloader, error) {
+	shard,
+	workdir string,
+	runOnce bool) (*Downloader, error) {
 
 	cmd := exec.Command("mkdir", "-p", workdir)
 	err := cmd.Run()
 	if err != nil {
 		return nil, err
+	}
+
+	if !runOnce {
+		metrics.Start(metricsPort)
 	}
 
 	return &Downloader{
@@ -56,14 +62,13 @@ func NewDownloader(
 		glUsername:   glUsername,
 		glToken:      glToken,
 		privateKey:   privateKey,
-		metricsPort:  metricsPort,
 		workdir:      workdir,
 		cache:        make(map[string]time.Time),
 		tmp:          make(map[string]time.Time),
 	}, nil
 }
 
-func (d *Downloader) Run(ctx context.Context, shard string, dryRun, runOnce bool) error {
+func (d *Downloader) Run(ctx context.Context, dryRun, runOnce bool) error {
 	log.Println("Beginning sync...")
 	start := time.Now()
 
@@ -71,9 +76,8 @@ func (d *Downloader) Run(ctx context.Context, shard string, dryRun, runOnce bool
 
 	status := 1
 	if !runOnce {
-		metrics.Start(d.metricsPort)
 		defer func() {
-			metrics.RecordMetrics(shard, status, time.Since(start))
+			metrics.RecordMetrics(d.shard, status, time.Since(start))
 		}()
 	}
 

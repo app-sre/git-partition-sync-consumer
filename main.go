@@ -53,7 +53,9 @@ func main() {
 		envVars["GITLAB_TOKEN"],
 		envVars["METRICS_SERVER_PORT"],
 		envVars["PRIVATE_KEY"],
+		envVars["INSTANCE_SHARD"],
 		envVars["WORKDIR"],
+		runOnce,
 	)
 	if err != nil {
 		log.Fatalln(err)
@@ -61,7 +63,7 @@ func main() {
 
 	for {
 		ctx := context.Background()
-		err = downloader.Run(ctx, envVars["INSTANCE_SHARD"], dryRun, runOnce)
+		err = downloader.Run(ctx, dryRun, runOnce)
 		if err != nil {
 			log.Fatalln(err)
 		}
