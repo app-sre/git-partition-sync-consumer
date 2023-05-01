@@ -93,6 +93,7 @@ func (d *Downloader) Run(ctx context.Context, dryRun, runOnce bool) error {
 	// nothing to do
 	if len(encryptedUpdates) < 1 {
 		log.Println("Everything is up to date. Exiting early.")
+		status = 0
 		return nil
 	}
 
