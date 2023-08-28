@@ -11,6 +11,7 @@ objects:
     annotations:
       ignore-check.kube-linter.io/minimum-three-replicas: "git-partition-sync-consumer design does not adequately account for multiple replicas"
       ignore-check.kube-linter.io/no-readiness-probe: "git-partition-sync-consumer does not receive traffic"
+      ignore-check.kube-linter.io/unset-cpu-requirements: "no cpu limits"
     name: git-partition-sync-consumer
   spec:
     replicas: ${{REPLICAS}}
@@ -87,7 +88,6 @@ objects:
               cpu: ${CPU_REQUESTS}
             limits:
               memory: ${MEMORY_LIMIT}
-              cpu: ${CPU_LIMIT}
           volumeMounts:
           - name: sync-ops
             mountPath: ${VOLUME_PATH}
@@ -132,8 +132,6 @@ parameters:
   value: 1000Mi
 - name: CPU_REQUESTS
   value: 300m
-- name: CPU_LIMIT
-  value: 500m
 - name: VAULT_SECRET_NAME
   value: git-partition-sync-consumer
 - name: INTERNAL_GIT_CA_PATH
