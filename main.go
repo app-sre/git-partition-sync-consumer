@@ -65,7 +65,11 @@ func main() {
 		ctx := context.Background()
 		err = downloader.Run(ctx, dryRun, runOnce)
 		if err != nil {
-			log.Fatalln(err)
+			if runOnce {
+				log.Fatalln(err)
+			} else {
+				log.Println(err)
+			}
 		}
 
 		if runOnce {
