@@ -42,6 +42,8 @@ objects:
             value: ${VOLUME_PATH}/${WORKDIR}
           - name: INTERNAL_GIT_CA_PATH
             value: ${INTERNAL_GIT_CA_PATH}
+          - name: AWS_USE_FIPS_ENDPOINT
+            value: ${USE_FIPS}
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
@@ -137,3 +139,6 @@ parameters:
 - name: INTERNAL_GIT_CA_PATH
   description: 'path to certificate file to add in git config trust'
   value: '/etc/pki/ca-trust/source/anchors/ca.crt'
+- name: USE_FIPS
+  description: whether to use FIPS endpoints when communicating with S3
+  value: "true"
