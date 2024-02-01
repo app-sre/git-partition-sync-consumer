@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os/exec"
+	"os"
 	"time"
 
 	"github.com/app-sre/git-partition-sync-consumer/pkg/metrics"
@@ -43,8 +43,7 @@ func NewDownloader(
 	workdir string,
 	runOnce bool) (*Downloader, error) {
 
-	cmd := exec.Command("mkdir", "-p", workdir)
-	err := cmd.Run()
+	err := os.Mkdir(workdir, 0755)
 	if err != nil {
 		return nil, err
 	}
@@ -148,15 +147,12 @@ func (d *Downloader) Run(ctx context.Context, dryRun, runOnce bool) error {
 
 // clean target working directory
 func (d *Downloader) clean(directory string) error {
-	cmd := exec.Command("rm", "-rf", directory)
-	cmd.Dir = d.workdir
-	err := cmd.Run()
+	err := os.RemoveAll(directory)
 	if err != nil {
 		return err
 	}
-	cmd = exec.Command("mkdir", directory)
-	cmd.Dir = d.workdir
-	err = cmd.Run()
+
+	err = os.Mkdir(directory, 0775)
 	if err != nil {
 		return err
 	}
@@ -165,9 +161,7 @@ func (d *Downloader) clean(directory string) error {
 
 // clear all items in working directory
 func (d *Downloader) clear() error {
-	cmd := exec.Command("rm", "-rf", UNTAR_DIRECTORY)
-	cmd.Dir = d.workdir
-	err := cmd.Run()
+	err := os.RemoveAll(UNTAR_DIRECTORY)
 	if err != nil {
 		return err
 	}
