@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/app-sre/git-partition-sync-consumer/pkg/metrics"
@@ -147,7 +148,7 @@ func (d *Downloader) Run(ctx context.Context, dryRun, runOnce bool) error {
 
 // clean target working directory
 func (d *Downloader) clean(directory string) error {
-	err := os.RemoveAll(directory)
+	err := os.RemoveAll(filepath.Join(d.workdir, directory))
 	if err != nil {
 		return err
 	}
