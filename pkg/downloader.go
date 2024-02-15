@@ -153,7 +153,7 @@ func (d *Downloader) clean(directory string) error {
 		return err
 	}
 
-	err = os.Mkdir(directory, 0775)
+	err = os.Mkdir(filepath.Join(d.workdir, directory), 0755)
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func (d *Downloader) clean(directory string) error {
 
 // clear all items in working directory
 func (d *Downloader) clear() error {
-	err := os.RemoveAll(UNTAR_DIRECTORY)
+	err := os.RemoveAll(filepath.Join(d.workdir, UNTAR_DIRECTORY))
 	if err != nil {
 		return err
 	}
