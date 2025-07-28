@@ -107,9 +107,9 @@ objects:
               path: ca.crt
 parameters:
 - name: IMAGE
-  value: quay.io/app-sre/git-partition-sync-consumer
+  value: quay.io/redhat-services-prod/app-sre-tenant/git-partition-sync-consumer-master/git-partition-sync-consumer-master
   displayName: git-partition-sync-consumer image
-  description: git-partition-sync-consumer docker image. Defaults to quay.io/app-sre/git-partition-sync-consumer
+  description: git-partition-sync-consumer docker image
 - name: IMAGE_TAG
   value: latest
   displayName: git-partition-sync-consumer version
