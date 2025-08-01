@@ -8,7 +8,7 @@ RUN make build
 FROM builder AS test
 RUN make test
 
-FROM registry.access.redhat.com/ubi9-minimal:9.4-1227.1726694542 as prod
+FROM registry.access.redhat.com/ubi9-minimal:9.6-1754000177 as prod
 COPY --from=builder /workspace/git-partition-sync-consumer  /bin/git-partition-sync-consumer
 RUN microdnf update -y && microdnf install -y git
 
