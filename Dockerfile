@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/go-toolset:1.21.13-1.1727869850 as builder
+FROM registry.access.redhat.com/ubi8/go-toolset:1.26.7-1790170926 as builder
 LABEL konflux.additional-tags=1.0.0
 USER 0
 WORKDIR /workspace
